@@ -14,7 +14,7 @@ export const getContactById = async (id) => {
 
 export const removeContact = async (id) => {
   // Повертає об'єкт видаленого контакту. Повертає null, якщо контакт з таким id не знайдений.
-  const result = await Contact.findByIdAndRemove(id);
+  const result = await Contact.findByIdAndDelete(id);
   return result || null;
 };
 
