@@ -15,10 +15,34 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const token = await authService.loginUser(req.body);
+    const loginedUser = await authService.loginUser(req.body);
     res.json({
-      token,
+      token: loginedUser.token,
+      user: {
+        email: loginedUser.user.email,
+      },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getCurrent = async (req, res) => {
+  try {
+    const { email } = req.user;
+
+    res.json({
+      email,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    await authService.logoutUser(req);
+    res.status(204).json({});
   } catch (error) {
     next(error);
   }

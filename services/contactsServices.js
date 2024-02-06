@@ -1,10 +1,29 @@
 import { Contact } from "../models/contact.js";
 
-export const listContacts = async () => {
+export const listContacts = async (req) => {
   // Повертає масив контактів.
-  const result = await Contact.find({}, "-createdAt -updatedAt");
+  const { _id: owner } = req.user;
+  const { page = 1, limit = 20 } = req.query;
+  const skip = (page - 1) * limit;
+  const result = await Contact.find({ owner }, "-createdAt -updatedAt", {
+    skip,
+    limit,
+  }).populate("owner", "email");
   return result;
 };
+
+// const getAll = async (req, res) => {
+//   const { _id: owner } = req.user;
+//   const { page = 1, limit = 10 } = req.query;
+//   const skip = (page - 1) * limit;
+//   const result = await Book.find({ owner }, "-createdAt -updatedAt",
+// {
+//     skip,
+//     limit,
+//   }
+// ).populate("owner", "name email");
+//   res.json(result);
+// };
 
 export const getContactById = async (id) => {
   // Повертає об'єкт контакту з таким id. Повертає null, якщо контакт з таким id не знайдений.
@@ -18,11 +37,13 @@ export const removeContact = async (id) => {
   return result || null;
 };
 
-export const addContact = async (data) => {
+export const addContact = async (req) => {
   // Повертає об'єкт доданого контакту.
-  const result = await Contact.create(data);
+  const { _id: owner } = req.user;
+  const result = await Contact.create({ ...req.body, owner });
   return result;
 };
+
 export const updateContactById = async (id, data) => {
   // Повертає оновлений об'єкт контакту з таким id. Повертає null, якщо контакт з таким id не знайдений.
   const result = await Contact.findByIdAndUpdate(

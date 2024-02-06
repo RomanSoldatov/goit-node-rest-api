@@ -2,7 +2,7 @@ import * as contactsService from "../services/contactsServices.js";
 import { HttpError } from "../helpers/HttpError.js";
 
 export const getAllContacts = async (req, res) => {
-  const result = await contactsService.listContacts();
+  const result = await contactsService.listContacts(req);
   res.json(result);
 };
 
@@ -35,7 +35,7 @@ export const deleteContact = async (req, res, next) => {
 };
 
 export const createContact = async (req, res) => {
-  const result = await contactsService.addContact(req.body);
+  const result = await contactsService.addContact(req);
   res.status(201).json(result);
 };
 
