@@ -6,6 +6,7 @@ export const register = async (req, res, next) => {
     res.status(201).json({
       user: {
         email: registeredUser.email,
+        subscription: registeredUser.subscription,
       },
     });
   } catch (error) {
@@ -20,6 +21,7 @@ export const login = async (req, res, next) => {
       token: loginedUser.token,
       user: {
         email: loginedUser.user.email,
+        subscription: loginedUser.user.subscription,
       },
     });
   } catch (error) {
@@ -29,10 +31,11 @@ export const login = async (req, res, next) => {
 
 export const getCurrent = async (req, res) => {
   try {
-    const { email } = req.user;
+    const { email, subscription } = req.user;
 
     res.json({
       email,
+      subscription,
     });
   } catch (error) {
     next(error);

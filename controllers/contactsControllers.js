@@ -9,8 +9,10 @@ export const getAllContacts = async (req, res) => {
 export const getOneContact = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { _id: owner } = req.user;
     const result = await contactsService.getContactById(id);
-    if (!result) {
+    console.log(result);
+    if (!result || !result.owner || result.owner !== owner) {
       throw HttpError(404, "Not found");
     }
     res.json(result);
@@ -22,8 +24,9 @@ export const getOneContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { _id: owner } = req.user;
     const result = await contactsService.removeContact(id);
-    if (!result) {
+    if (!result || !result.owner || result.owner !== owner) {
       throw HttpError(404, "Not found");
     }
     res.json({
@@ -42,8 +45,9 @@ export const createContact = async (req, res) => {
 export const updateContact = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { _id: owner } = req.user;
     const result = await contactsService.updateContactById(id, req.body);
-    if (!result) {
+    if (!result || !result.owner || result.owner !== owner) {
       throw HttpError(404, "Not found");
     }
     res.json(result);
@@ -55,9 +59,10 @@ export const updateContact = async (req, res, next) => {
 export const updateStatusContact = async (req, res) => {
   try {
     const { id } = req.params;
+    const { _id: owner } = req.user;
     const result = await contactsService.updateStatusContactbyId(id, req.body);
 
-    if (!result) {
+    if (!result || !result.owner || result.owner !== owner) {
       throw HttpError(404, "Not Found");
     }
     res.json(result);
