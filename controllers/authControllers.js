@@ -1,14 +1,4 @@
 import * as authService from "../services/authServices.js";
-// import { User } from "../models/user.js";
-
-// import fs from "fs/promises";
-// import Jimp from "jimp";
-// import path from "path";
-// import { fileURLToPath } from "url";
-// import { join, dirname } from "path";
-
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = dirname(__filename);
 
 export const register = async (req, res, next) => {
   try {
@@ -18,6 +8,28 @@ export const register = async (req, res, next) => {
         email: registeredUser.email,
         subscription: registeredUser.subscription,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyEmail = async (req, res, next) => {
+  try {
+    await authService.verifyUserEmail(req);
+    res.status(200).json({
+      message: "Verification successful",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerifyEmail = async (req, res, next) => {
+  try {
+    await authService.resendVerifyUserEmail(req);
+    res.json({
+      message: "Verify email send success",
     });
   } catch (error) {
     next(error);

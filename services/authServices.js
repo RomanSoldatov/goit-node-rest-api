@@ -1,5 +1,6 @@
 import { User } from "../models/user.js";
 import { HttpError } from "../helpers/HttpError.js";
+import { sendEmail } from "../helpers/sendEmail.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import gravatar from "gravatar";
@@ -7,9 +8,11 @@ import dotenv from "dotenv";
 import fs from "fs/promises";
 import Jimp from "jimp";
 import path from "path";
+import { nanoid } from "nanoid";
+
 dotenv.config();
 
-const { SECRET_KEY } = process.env;
+const { SECRET_KEY, BASE_URL } = process.env;
 
 export const registerUser = async (data) => {
   const { email, password } = data;
@@ -19,14 +22,54 @@ export const registerUser = async (data) => {
     throw HttpError(409, "Email in use");
   }
   const avatarURL = gravatar.url(email);
+  const verificationToken = nanoid();
   const hashPassword = await bcrypt.hash(password, 10);
   const result = await User.create({
     ...data,
     avatarURL,
     password: hashPassword,
+    verificationToken,
   });
-  console.log(avatarURL);
+  const verifyEmail = {
+    to: email,
+    subject: "Verify email",
+    html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${verificationToken}">Click verify email</a>`,
+  };
+
+  await sendEmail(verifyEmail);
   return result;
+};
+
+export const verifyUserEmail = async (req) => {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+  if (!user) {
+    throw HttpError(401, "Email not found");
+  }
+  await User.findByIdAndUpdate(user._id, {
+    verify: true,
+    verificationToken: "",
+  });
+  return;
+};
+export const resendVerifyUserEmail = async (req) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw HttpError(401, "Email not found");
+  }
+  if (user.verify) {
+    throw HttpError(400, "Verification has already been passed");
+  }
+
+  const verifyEmail = {
+    to: email,
+    subject: "Verify email",
+    html: `<a target="_blank" href="${BASE_URL}/api/auth/verify/${user.verificationToken}">Click verify email</a>`,
+  };
+
+  await sendEmail(verifyEmail);
+  return;
 };
 
 export const loginUser = async (data) => {
@@ -35,6 +78,9 @@ export const loginUser = async (data) => {
 
   if (!user) {
     throw HttpError(401, "Email or password is wrong");
+  }
+  if (!user.verify) {
+    throw HttpError(401, "Email not verified");
   }
   const passwordCompare = await bcrypt.compare(password, user.password);
   if (!passwordCompare) {
